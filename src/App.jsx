@@ -1,3 +1,4 @@
+import OpenContext from './OpenContext.jsx'
 import { useEffect, useMemo, useState } from 'react'
 
 const services = [
@@ -94,13 +95,14 @@ export default function App() {
 
   return (
     <div className="booking-shell">
+      <header className="product-topbar"><a href="#workspace">Встреча / Онлайн-запись</a><nav><a href="#workspace">Рабочая область</a><a href="#open-data">Справочник</a><a href="https://cherreshenka1.github.io/portfolio/">Портфолио ↗</a></nav><span className="monogram">АБ</span></header>
       <header className="hero-card">
         <p className="eyebrow">Smart Booking Calendar</p>
         <h1>Давайте выберем время</h1>
         <p className="hero-text">Выберите формат встречи, удобный день и свободное время. Все детали будут видны до подтверждения.</p>
       </header>
 
-      <main className="booking-grid">
+      <main id="workspace" className="booking-grid">
         <section className="left-panel">
           <div className="services-row">
             {services.map((service) => (
@@ -210,6 +212,7 @@ export default function App() {
           </div>
         </aside>
       </main>
+      <OpenContext/>
     </div>
   )
 }
