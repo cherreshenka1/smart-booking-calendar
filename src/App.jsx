@@ -97,7 +97,7 @@ export default function App() {
     <div className="booking-shell">
       <header className="product-topbar"><a href="#workspace">Встреча / Онлайн-запись</a><nav><a href="#workspace">Рабочая область</a><a href="#open-data">Справочник</a><a href="https://cherreshenka1.github.io/portfolio/">Портфолио ↗</a></nav><span className="monogram">АБ</span></header>
       <header className="hero-card">
-        <p className="eyebrow">Smart Booking Calendar</p>
+        <p className="eyebrow">Запись к специалисту</p>
         <h1>Давайте выберем время</h1>
         <p className="hero-text">Выберите формат встречи, удобный день и свободное время. Все детали будут видны до подтверждения.</p>
       </header>
