@@ -12,7 +12,7 @@ const STORAGE_KEY = 'smart-booking-calendar-bookings'
 const dateItems = Array.from({ length: 8 }, (_, index) => {
   const date = new Date()
   date.setDate(date.getDate() + index)
-  return date.toISOString().slice(0, 10)
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
 })
 
 function loadBookings() {
@@ -41,13 +41,20 @@ export default function App() {
     [serviceId],
   )
 
-  const isSlotBooked = (time) =>
-    bookings.some(
-      (booking) =>
-        booking.date === selectedDate &&
-        booking.time === time &&
-        booking.serviceId === serviceId,
-    )
+  const toMinutes = time => time.split(':').reduce((h, m) => Number(h) * 60 + Number(m))
+  const duration = service => parseInt(service.duration, 10)
+  const isPast = time => new Date(`${selectedDate}T${time}:00`) <= new Date()
+  const isSlotBooked = time => bookings.some(booking => {
+    if (booking.date !== selectedDate) return false
+    const previous = services.find(service => service.id === booking.serviceId) || services[0]
+    const start = toMinutes(time), bookedStart = toMinutes(booking.time)
+    return start < bookedStart + duration(previous) && start + duration(activeService) > bookedStart
+  })
+  useEffect(() => {
+    if (!selectedTime || isSlotBooked(selectedTime) || isPast(selectedTime)) {
+      setSelectedTime(slots.find(time => !isSlotBooked(time) && !isPast(time)) || '')
+    }
+  }, [serviceId, selectedDate, bookings])
 
   const filteredBookings = useMemo(
     () =>
@@ -60,12 +67,12 @@ export default function App() {
   const submitBooking = (event) => {
     event.preventDefault()
 
-    if (form.name.trim().length < 2 || form.phone.trim().length < 8) {
+    if (form.name.trim().length < 2 || form.phone.replace(/\D/g,'').length < 10) {
       setStatus('Проверь имя и телефон — кажется, они заполнены не полностью.')
       return
     }
 
-    if (isSlotBooked(selectedTime)) {
+    if (!selectedTime || isPast(selectedTime) || isSlotBooked(selectedTime)) {
       setStatus('Этот слот уже занят. Выбери другое время.')
       return
     }
@@ -82,18 +89,15 @@ export default function App() {
 
     setBookings((current) => [booking, ...current])
     setForm({ name: '', phone: '' })
-    setStatus(`Запись подтверждена: ${activeService.title}, ${selectedDate}, ${selectedTime}.`)
+    setStatus(`Демо-запись сохранена: ${activeService.title}, ${selectedDate}, ${selectedTime}.`)
   }
 
   return (
     <div className="booking-shell">
       <header className="hero-card">
         <p className="eyebrow">Smart Booking Calendar</p>
-        <h1>Онлайн-запись с календарём, свободными слотами и красивым подтверждением</h1>
-        <p className="hero-text">
-          Проект в мягком premium-стиле: выбирай услугу, дату, время и сохраняй ближайшие
-          записи в браузере через localStorage.
-        </p>
+        <h1>Давайте выберем время</h1>
+        <p className="hero-text">Выберите формат встречи, удобный день и свободное время. Все детали будут видны до подтверждения.</p>
       </header>
 
       <main className="booking-grid">
@@ -137,7 +141,7 @@ export default function App() {
             <h2>Свободные слоты</h2>
             <div className="slots-grid">
               {slots.map((time) => {
-                const booked = isSlotBooked(time)
+                const booked = isSlotBooked(time) || isPast(time)
                 return (
                   <button
                     type="button"
@@ -147,7 +151,7 @@ export default function App() {
                     disabled={booked}
                   >
                     {time}
-                    <small>{booked ? 'Занято' : 'Свободно'}</small>
+                    <small>{isPast(time) ? 'Прошло' : booked ? 'Занято' : 'Свободно'}</small>
                   </button>
                 )
               })}
@@ -156,8 +160,8 @@ export default function App() {
         </section>
 
         <aside className="right-panel">
-          <form className="booking-form" onSubmit={submitBooking}>
-            <p className="eyebrow">Форма записи</p>
+          <p className="demo-note">Демо-календарь одного специалиста. Реальная встреча не назначается. Используйте вымышленные данные.</p><form className="booking-form" onSubmit={submitBooking}>
+            <p className="eyebrow">Ваша встреча</p><p className="demo-note">{new Date(`${selectedDate}T12:00:00`).toLocaleDateString('ru-RU')} · {selectedTime || 'Нет свободного времени'} · {Intl.DateTimeFormat().resolvedOptions().timeZone}</p>
             <h2>{activeService.title}</h2>
             <label>
               Имя
@@ -177,10 +181,10 @@ export default function App() {
                 placeholder="+7 900 000-00-00"
               />
             </label>
-            <button type="submit" className="confirm-btn">
-              Подтвердить запись
+            <button type="submit" className="confirm-btn" disabled={!selectedTime}>
+              Сохранить демо-запись
             </button>
-            {status && <div className="status-box">{status}</div>}
+            {status && <div role="status" className="status-box">{status}</div>}
           </form>
 
           <div className="upcoming-card">
@@ -198,7 +202,7 @@ export default function App() {
                       <strong>{booking.client}</strong>
                       <p>{booking.date} • {booking.time}</p>
                     </div>
-                    <span>{booking.serviceTitle}</span>
+                    <span>{booking.serviceTitle}</span><button type="button" onClick={() => {setBookings(current => current.filter(item => item.id !== booking.id)); setStatus("Запись отменена. Время снова доступно.")}}>Отменить запись</button>
                   </article>
                 ))
               )}
