@@ -26,6 +26,7 @@ function loadBookings() {
 }
 
 export default function App() {
+  const [step,setStep]=useState(1)
   const [bookings, setBookings] = useState(loadBookings)
   const [serviceId, setServiceId] = useState(services[0].id)
   const [selectedDate, setSelectedDate] = useState(dateItems[0])
@@ -93,126 +94,9 @@ export default function App() {
     setStatus(`Демо-запись сохранена: ${activeService.title}, ${selectedDate}, ${selectedTime}.`)
   }
 
-  return (
-    <div className="booking-shell">
-      <header className="product-topbar"><a href="#workspace">Встреча / Онлайн-запись</a><nav><a href="#workspace">Рабочая область</a><a href="#open-data">Справочник</a><a href="https://cherreshenka1.github.io/portfolio/">Портфолио ↗</a></nav><span className="monogram">АБ</span></header>
-      <header className="hero-card">
-        <p className="eyebrow">Запись к специалисту</p>
-        <h1>Давайте выберем время</h1>
-        <p className="hero-text">Выберите формат встречи, удобный день и свободное время. Все детали будут видны до подтверждения.</p>
-      </header>
-
-      <main id="workspace" className="booking-grid">
-        <section className="left-panel">
-          <div className="services-row">
-            {services.map((service) => (
-              <button
-                type="button"
-                key={service.id}
-                className={service.id === serviceId ? 'service-card active' : 'service-card'}
-                onClick={() => setServiceId(service.id)}
-              >
-                <span>{service.duration}</span>
-                <strong>{service.title}</strong>
-                <p>{service.price.toLocaleString('ru-RU')} ₽</p>
-              </button>
-            ))}
-          </div>
-
-          <div className="calendar-panel">
-            <h2>Выбери дату</h2>
-            <div className="dates-grid">
-              {dateItems.map((date) => {
-                const formatted = new Date(date).toLocaleDateString('ru-RU', {
-                  day: '2-digit',
-                  month: 'short',
-                })
-                return (
-                  <button
-                    type="button"
-                    key={date}
-                    className={selectedDate === date ? 'date-pill active' : 'date-pill'}
-                    onClick={() => setSelectedDate(date)}
-                  >
-                    {formatted}
-                  </button>
-                )
-              })}
-            </div>
-
-            <h2>Свободные слоты</h2>
-            <div className="slots-grid">
-              {slots.map((time) => {
-                const booked = isSlotBooked(time) || isPast(time)
-                return (
-                  <button
-                    type="button"
-                    key={time}
-                    className={`${selectedTime === time ? 'slot-btn active' : 'slot-btn'} ${booked ? 'booked' : ''}`}
-                    onClick={() => !booked && setSelectedTime(time)}
-                    disabled={booked}
-                  >
-                    {time}
-                    <small>{isPast(time) ? 'Прошло' : booked ? 'Занято' : 'Свободно'}</small>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        </section>
-
-        <aside className="right-panel">
-          <p className="demo-note">Демо-календарь одного специалиста. Реальная встреча не назначается. Используйте вымышленные данные.</p><form className="booking-form" onSubmit={submitBooking}>
-            <p className="eyebrow">Ваша встреча</p><p className="demo-note">{new Date(`${selectedDate}T12:00:00`).toLocaleDateString('ru-RU')} · {selectedTime || 'Нет свободного времени'} · {Intl.DateTimeFormat().resolvedOptions().timeZone}</p>
-            <h2>{activeService.title}</h2>
-            <label>
-              Имя
-              <input
-                type="text"
-                value={form.name}
-                onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-                placeholder="Артём"
-              />
-            </label>
-            <label>
-              Телефон
-              <input
-                type="tel"
-                value={form.phone}
-                onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}
-                placeholder="+7 900 000-00-00"
-              />
-            </label>
-            <button type="submit" className="confirm-btn" disabled={!selectedTime}>
-              Сохранить демо-запись
-            </button>
-            {status && <div role="status" className="status-box">{status}</div>}
-          </form>
-
-          <div className="upcoming-card">
-            <div className="upcoming-head">
-              <h2>Ближайшие записи</h2>
-              <span>{filteredBookings.length}</span>
-            </div>
-            <div className="booking-list">
-              {filteredBookings.length === 0 ? (
-                <p className="empty-text">Пока нет записей по этой услуге.</p>
-              ) : (
-                filteredBookings.map((booking) => (
-                  <article className="booking-item" key={booking.id}>
-                    <div>
-                      <strong>{booking.client}</strong>
-                      <p>{booking.date} • {booking.time}</p>
-                    </div>
-                    <span>{booking.serviceTitle}</span><button type="button" onClick={() => {setBookings(current => current.filter(item => item.id !== booking.id)); setStatus("Запись отменена. Время снова доступно.")}}>Отменить запись</button>
-                  </article>
-                ))
-              )}
-            </div>
-          </div>
-        </aside>
-      </main>
-      <OpenContext/>
-    </div>
-  )
+  return <div className="booking-shell"><header className="booking-nav"><a href="#workspace">встреча</a><a href="https://cherreshenka1.github.io/portfolio/">Портфолио ↗</a></header><main id="workspace" className="booking-flow"><aside className="host-profile"><div className="host-monogram">АБ</div><p>Индивидуальная консультация</p><h1>Давайте <br/>разберёмся.</h1><p>Спокойно обсудим интерфейс, код или вашу задачу. Выберите удобный формат встречи.</p><dl><dt>Формат</dt><dd>Онлайн</dd><dt>Часовой пояс</dt><dd>{Intl.DateTimeFormat().resolvedOptions().timeZone}</dd></dl><p className="demo-note">Демо-запись. Настоящая встреча не назначается.</p></aside><section className="booking-steps"><nav className="step-nav" aria-label="Этапы записи">{['Формат','Время','Детали'].map((label,i)=><button key={label} className={step===i+1?'active':''} disabled={i===2&&!selectedTime} onClick={()=>setStep(i+1)}>{i+1}. {label}</button>)}</nav>
+      {step===1&&<><p className="step-label">Начнём с задачи</p><h2>Чем могу помочь?</h2><div className="services-row">{services.map(service=><button key={service.id} className={serviceId===service.id?'service-card active':'service-card'} onClick={()=>{setServiceId(service.id);setStep(2)}}><div><strong>{service.title}</strong><span>{service.duration}</span></div><p>{service.price.toLocaleString('ru-RU')} ₽ <span>↗</span></p></button>)}</div><p className="demo-note">Цены учебные. Оплата не проводится.</p></>}
+      {step===2&&<><p className="step-label">{activeService.title} · {activeService.duration}</p><h2>Когда вам удобно?</h2><div className="dates-grid">{dateItems.map(date=><button key={date} onClick={()=>setSelectedDate(date)} className={date===selectedDate?'date-pill active':'date-pill'}>{new Date(date+'T12:00:00').toLocaleDateString('ru-RU',{weekday:'short',day:'numeric',month:'short'})}</button>)}</div><h3>Свободное время</h3><div className="slots-grid">{slots.map(time=><button key={time} disabled={isSlotBooked(time)||isPast(time)} className={selectedTime===time?'slot-btn active':'slot-btn'} onClick={()=>setSelectedTime(time)}>{time}<small>{isPast(time)?'Прошло':isSlotBooked(time)?'Занято':'Свободно'}</small></button>)}</div><button className="confirm-btn" disabled={!selectedTime} onClick={()=>setStep(3)}>Продолжить →</button></>}
+      {step===3&&<><p className="step-label">Остался один шаг</p><h2>Всё верно?</h2><div className="appointment-summary"><strong>{activeService.title}</strong><p>{new Date(selectedDate+'T12:00:00').toLocaleDateString('ru-RU')} · {selectedTime||'Выберите другое время'} · {activeService.duration}</p><span>{activeService.price.toLocaleString('ru-RU')} ₽ · учебная цена</span></div><form className="booking-form" onSubmit={submitBooking}><label>Имя<input value={form.name} onChange={event=>setForm(prev=>({...prev,name:event.target.value}))} placeholder="Имя для демо-записи" required/></label><label>Телефон<input type="tel" value={form.phone} onChange={event=>setForm(prev=>({...prev,phone:event.target.value}))} placeholder="+7 900 000-00-00" required/></label><button className="confirm-btn" disabled={!selectedTime}>Сохранить демо-запись</button></form></>}
+      {status&&<p className="status-box" role="status">{status}</p>}<details className="upcoming-card"><summary>Мои записи · {filteredBookings.length}</summary>{filteredBookings.length?filteredBookings.map(booking=><article className="booking-item" key={booking.id}><strong>{booking.client} · {booking.date} / {booking.time}</strong><p>{booking.serviceTitle}</p><button onClick={()=>{setBookings(current=>current.filter(item=>item.id!==booking.id));setStatus('Запись отменена. Время снова доступно.')}}>Отменить запись</button></article>):<p>Пока нет записей по этой услуге.</p>}</details></section></main><details className="sources"><summary>О проекте и данных</summary><OpenContext/></details></div>
 }
